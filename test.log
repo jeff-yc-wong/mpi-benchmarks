@@ -1,0 +1,62 @@
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'smpi/privatization' to 'ON'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'smpi/np' to '4'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'smpi/hostfile' to 'smpitmp-hostf03K0zu'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'precision/timing' to '1e-9'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'network/model' to 'SMPI'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'smpi/tmpdir' to '/tmp'
+[0.000000] [smpi_config/INFO] You did not set the power of the host running the simulation.  The timings will certainly not be accurate.  Use the option "--cfg=smpi/host-speed:<flops>" to set its value.  Check https://simgrid.org/doc/latest/Configuring_SimGrid.html#automatic-benchmarking-of-smpi-code for more information.
+#------------------------------------------------------------
+#    Intel(R) MPI Benchmarks 2021.7, IMB-P2P part
+#------------------------------------------------------------
+# Date                  : Mon Jun 10 19:42:46 2024
+# Machine               : aarch64
+# System                : Linux
+# Release               : 5.15.0-107-generic
+# Version               : #117-Ubuntu SMP Mon Apr 29 14:37:09 UTC 2024
+# MPI Version           : 3.1
+# MPI Thread Environment:
+#
+# Calling sequence was:
+#
+# ./IMB-P2P Unirandom
+#
+# List of Benchmarks to run:
+#
+# Unirandom
+#
+# Minimum message length in bytes:   0
+# Maximum message length in bytes:   4194304
+#
+
+#----------------------------------------------------------------
+# Benchmarking Unirandom
+# #processes = 4
+#----------------------------------------------------------------
+       #bytes #repetitions      t[usec]   Mbytes/sec      Msg/sec
+            0       100000         0.00         0.00    874502487
+            1       100000         0.00       823.12    823122431
+            2       100000         0.01      1554.90    777449869
+            4       100000         0.01      2799.11    699777259
+            8       100000         0.01      4666.15    583269266
+           16       100000         0.01      7000.94    437558475
+           32       100000         0.01      9248.19    289005860
+           64       100000         0.02     11063.95    172874166
+          128       100000         0.04     12278.41     95925102
+          256       100000         0.19      5456.16     21313140
+          512       100000         0.36      5619.39     10975370
+         1024       100000         0.71      5762.60      5627542
+         2048       100000         0.80     10266.72      5013046
+         4096       100000         1.25     13062.09      3188987
+         8192       100000         1.80     18222.08      2224376
+        16384        51200         5.55     11809.34       720785
+        32768        25600        11.11     11794.41       359937
+        65536        12800        24.24     10813.73       165004
+       131072         6400        48.46     10819.36        82545
+       262144         3200        97.12     10796.48        41185
+       524288         1600       194.51     10779.99        20561
+      1048576          800       391.90     10699.61        10204
+      2097152          400       783.01     10713.19         5108
+      4194304          200      1584.72     10575.44         2521
+
+
+# All processes entering MPI_Finalize

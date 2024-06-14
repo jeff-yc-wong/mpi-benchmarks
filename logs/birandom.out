@@ -1,0 +1,70 @@
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'smpi/privatization' to 'ON'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'smpi/np' to '768'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'smpi/hostfile' to 'smpitmp-hostfTVMqnR'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'precision/timing' to '1e-9'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'network/model' to 'SMPI'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'smpi/tmpdir' to '/tmp'
+[0.000000] [xbt_cfg/INFO] Configuration change: Set 'smpi/display-timing' to '1'
+[0.000000] [smpi_config/INFO] You did not set the power of the host running the simulation.  The timings will certainly not be accurate.  Use the option "--cfg=smpi/host-speed:<flops>" to set its value.  Check https://simgrid.org/doc/latest/Configuring_SimGrid.html#automatic-benchmarking-of-smpi-code for more information.
+#------------------------------------------------------------
+#    Intel(R) MPI Benchmarks 2021.7, IMB-P2P part
+#------------------------------------------------------------
+# Date                  : Fri May 31 19:35:04 2024
+# Machine               : aarch64
+# System                : Linux
+# Release               : 5.15.0-107-generic
+# Version               : #117-Ubuntu SMP Mon Apr 29 14:37:09 UTC 2024
+# MPI Version           : 3.1
+# MPI Thread Environment:
+#
+# Calling sequence was:
+#
+# ./IMB-P2P -iter 1 Birandom
+#
+# List of Benchmarks to run:
+#
+# Birandom
+#
+# Minimum message length in bytes:   0
+# Maximum message length in bytes:   4194304
+#
+
+#----------------------------------------------------------------
+# Benchmarking Birandom
+# #processes = 768
+#----------------------------------------------------------------
+       #bytes #repetitions      t[usec]   Mbytes/sec      Msg/sec
+            0            1         0.41         0.00    752876937
+            1            1         0.47       555.72    555722302
+            2            1         0.49      1091.10    545548538
+            4            1         0.53      2088.16    522039651
+            8            1         0.60      3856.35    482043686
+           16            1         0.76      6643.77    415235760
+           32            1         1.08     10143.32    316978679
+           64            1         1.73     13725.52    214461260
+          128            1         3.02     16620.91    129850888
+          256            1        13.31      8007.58     31279615
+          512            1        25.75      8348.67     16305988
+         1024            1        50.05      8619.17      8417161
+         2048            1        55.78     15473.78      7555555
+         4096            1        87.26     19805.59      4835348
+         8192            1       124.10     27871.49      3402281
+        16384            1       386.17     17930.32      1094380
+        32768            1       771.87     17941.27       547524
+        65536            1      1144.94     24189.49       369102
+       131072            1      2289.53     24193.96       184585
+       262144            1      4578.70     24196.19        92301
+       524288            1      9157.11     24197.20        46153
+      1048576            1     18314.01     24197.67        23077
+      2097152            1     36627.79     24197.91        11538
+      4194304            1     73255.37     24198.03         5769
+
+
+# All processes entering MPI_Finalize
+
+[5.336261] [smpi_utils/INFO] Simulated time: 5.33626 seconds. 
+
+The simulation took 20.6363 seconds (after parsing and platform setup)
+146.031 seconds were actual computation of the application
+[5.336261] [smpi_utils/INFO] More than 75% of the time was spent inside the application code.
+You may want to use sampling functions or trace replay to reduce this.
