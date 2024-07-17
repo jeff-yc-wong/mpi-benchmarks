@@ -41,8 +41,8 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 static const char * VERSION = "2021.7";
-FILE* unit = NULL;
 imb_p2p_configuration_t imb_p2p_config = { 0 };
+FILE* unit = NULL;
 
 static void print_main_header(int argc, char **argv);
 static void print_main_footer();
@@ -71,7 +71,10 @@ void* imb_p2p_alloc_mem(size_t size) {
          exit(10);
      }
     return ptr;
-    //return SMPI_SHARED_MALLOC(size);
+    // if (size == 0) {
+    //     return SMPI_SHARED_MALLOC(1);
+    // }
+    // return SMPI_SHARED_MALLOC(size);
 }
 
 void imb_p2p_free_mem(void *ptr) {
@@ -82,7 +85,7 @@ void imb_p2p_free_mem(void *ptr) {
         fflush(unit);
         exit(11);
     }
-    //SMPI_SHARED_FREE(ptr);
+    // SMPI_SHARED_FREE(ptr);
 }
 
 void* imb_p2p_realloc_mem(void *old_ptr, size_t old_size, size_t new_size) {
@@ -240,7 +243,6 @@ static void print_main_header(int argc, char **argv) {
     for (i = 0; i < argc; i++) {
         fprintf(unit, " %s", argv[i]);
     }
-    fprintf(unit, "\n");
     fprintf(unit, "#\n");
     fprintf(unit, "# List of Benchmarks to run:\n");
     fprintf(unit, "#\n");
@@ -257,10 +259,10 @@ static void print_main_header(int argc, char **argv) {
 static void print_main_footer() {
     fprintf(unit, "\n\n# All processes entering MPI_Finalize\n\n");
     fflush(unit);
-    if (unit != stdout) {
-        fprintf(stdout, "\n\n# All processes entering MPI_Finalize\n\n");
-        fflush(stdout);
-    }
+    // if (unit != stdout) {
+    //     fprintf(stdout, "\n\n# All processes entering MPI_Finalize\n\n");
+    //     fflush(stdout);
+    // }
 }
 
 static void free_benchmarks() {
@@ -304,7 +306,7 @@ static void free_messages() {
 static void add_message(size_t size) {
     if (!imb_p2p_config.messages.array) {
         imb_p2p_config.messages.min_size = ((size_t)1) << IMB_P2P_MAX_MSG_LOG;
-        imb_p2p_config.messages.max_size = 0;
+        imb_p2p_config.messages.max_size = 1;
         imb_p2p_config.messages.length = 0;
         imb_p2p_config.messages.capacity = 512;
         imb_p2p_config.messages.array = (size_t *)imb_p2p_alloc_mem(sizeof(size_t) * imb_p2p_config.messages.capacity);
@@ -632,6 +634,7 @@ static void finalization() {
     if (imb_p2p_config.rank == 0) {
         print_main_footer();
     }
+    fclose(unit);
     free_benchmarks();
     free_messages();
     MPI_Finalize();
@@ -640,6 +643,7 @@ static void finalization() {
 static void loading(int argc, char **argv) {
     int i;
     unit = stdout;
+    // unit = fopen("p2p.log", "w");
     imb_p2p_config.iter.numerator = 100 * (8 * 1024 * 1024);
     imb_p2p_config.iter.max = 100000;
     imb_p2p_config.payload.is_touch_send_buff = 1;

@@ -33,14 +33,19 @@
 TARGET=P2P
 BINARY:=IMB-P2P
 
-override CFLAGS += -DSMPI_NO_OVERRIDE_MALLOC=1 -O3 -Wall -Wextra -pedantic -Wno-long-long
-override LDFLAGS += -lm
+SIMGRID_INSTALL_PATH=/usr/local
+
+override CFLAGS += -I$(SIMGRID_INSTALL_PATH)/include/smpi
+override CFLAGS +=  -DSMPI_NO_OVERRIDE_MALLOC=1 -O3 -Wall -Wextra -pedantic -Wno-long-long
+
+override LDFLAGS += -lm -lsimgrid
 
 ifeq ($(origin CC),default)
 CC=smpicc
+CXX=g++
 endif
 
-all: $(BINARY)
+all: $(BINARY) wrapper wrapper_serial
 
 IMB_SRC = imb_p2p.c
 IMB_SRC += imb_p2p_pingpong.c
@@ -54,14 +59,23 @@ IMB_SRC += imb_p2p_sendrecv_replace.c
 
 IMB_OBJ = $(IMB_SRC:.c=.o)
 
+wrapper: wrapper.o parse.o
+	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+wrapper_serial: wrapper_serial.o parse.o
+	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
 $(BINARY): $(IMB_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -pie -o $@ $^ $(LDFLAGS)
+
+%.o: %.cpp
+	$(CXX) $(CFLAGS) -I.  -c -o $@ $<
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -fPIE -c -o $@ $<
 
 clean:
-	rm -f $(IMB_OBJ) $(BINARY)
+	rm -f $(IMB_OBJ) $(BINARY) wrapper
 
 $(IMB_OBJ): $(HEADERS) Makefile
 

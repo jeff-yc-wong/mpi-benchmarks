@@ -44,11 +44,11 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <math.h>
 
 #ifdef WIN_IMB
-#define STRCASECMP(s1,s2) _stricmp((s1),(s2))
+#define STRCASECMP(s1, s2) _stricmp((s1), (s2))
 #else /* linux */
 #include <strings.h>
 #include <unistd.h>
-#define STRCASECMP(s1,s2) strcasecmp((s1),(s2))
+#define STRCASECMP(s1, s2) strcasecmp((s1), (s2))
 #endif
 
 #define IMB_P2P_CACHE_LINE_LEN (64)
@@ -64,7 +64,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define IMB_P2P_STENCIL3D "Stencil3D"
 #define IMB_P2P_SENDRECV_REPLACE "SendRecv_Replace"
 
-extern FILE* unit;
+extern FILE *unit;
 void imb_p2p_barrier(MPI_Comm comm);
 void imb_p2p_pause();
 void imb_p2p_pingpong();
@@ -75,101 +75,123 @@ void imb_p2p_corandom();
 void imb_p2p_stencil2d();
 void imb_p2p_stencil3d();
 void imb_p2p_sendrecv_replace();
-void imb_p2p_print_benchmark_header(const char * name);
+void imb_p2p_print_benchmark_header(const char *name);
 void imb_p2p_free_mem(void *ptr);
-void* imb_p2p_alloc_mem(size_t size);
-void* imb_p2p_realloc_mem(void *old_ptr, size_t old_size, size_t new_size);
+void *imb_p2p_alloc_mem(size_t size);
+void *imb_p2p_realloc_mem(void *old_ptr, size_t old_size, size_t new_size);
+// int p2p_main(int argc, char **argv);
 
-typedef void(*imb_p2p_procedure_t)();
+typedef void (*imb_p2p_procedure_t)();
 
-typedef struct imb_p2p_benchmark {
-    const char * name;
+typedef struct imb_p2p_benchmark
+{
+    const char *name;
     imb_p2p_procedure_t run;
 } imb_p2p_benchmark_t;
 
-typedef struct imb_p2p_configuration {
+typedef struct imb_p2p_configuration
+{
     int rank;
     int nranks;
     int pause_usec;
-    struct {
-        imb_p2p_benchmark_t * array;
+    struct
+    {
+        imb_p2p_benchmark_t *array;
         size_t length;
         size_t capacity;
     } benchmarks;
-    struct {
-        size_t * array;
+    struct
+    {
+        size_t *array;
         size_t length;
         size_t capacity;
         size_t min_size;
         size_t max_size;
     } messages;
-    struct {
+    struct
+    {
         size_t numerator;
         size_t max;
     } iter;
-    struct {
+    struct
+    {
         int is_touch_send_buff;
         int is_touch_recv_buff;
         size_t dummy;
     } payload;
 } imb_p2p_configuration_t;
 
-typedef struct imb_p2p_report {
+typedef struct imb_p2p_report
+{
     size_t number_of_messages;
     double time;
 } imb_p2p_report_t;
 
 extern imb_p2p_configuration_t imb_p2p_config;
 
-static inline void touch_send_buff(size_t size, char * send_buffer) {
-    if (imb_p2p_config.payload.is_touch_send_buff) {
+static inline void touch_send_buff(size_t size, char *send_buffer)
+{
+    if (imb_p2p_config.payload.is_touch_send_buff)
+    {
         size_t dummy = imb_p2p_config.payload.dummy;
-        size_t i = 0;
+        // size_t i = 0;
         SMPI_SAMPLE_FLOPS(3* size/IMB_P2P_CACHE_LINE_LEN);
-//        while (i < size) {
-//            send_buffer[i] = (char)dummy;
-//            dummy++;
-//            i += IMB_P2P_CACHE_LINE_LEN;
-//        }
+        // while (i < size)
+        // {
+        //     send_buffer[i] = (char)dummy;
+        //     dummy++;
+        //     i += IMB_P2P_CACHE_LINE_LEN;
+        // }
         imb_p2p_config.payload.dummy = dummy;
     }
 }
 
-static inline void touch_recv_buff(size_t size, char * recv_buffer) {
-    if (imb_p2p_config.payload.is_touch_recv_buff) {
+static inline void touch_recv_buff(size_t size, char *recv_buffer)
+{
+    if (imb_p2p_config.payload.is_touch_recv_buff)
+    {
         size_t dummy = imb_p2p_config.payload.dummy;
-        size_t i = 0;
-        SMPI_SAMPLE_FLOPS(2* size/IMB_P2P_CACHE_LINE_LEN) 
- //       while (i < size) {
- //           dummy += recv_buffer[i];
- //           i += IMB_P2P_CACHE_LINE_LEN;
- //       }
+        // size_t i = 0;
+        SMPI_SAMPLE_FLOPS(2 * size / IMB_P2P_CACHE_LINE_LEN);
+        // while (i < size)
+        // {
+        //     dummy += recv_buffer[i];
+        //     i += IMB_P2P_CACHE_LINE_LEN;
+        // }
         imb_p2p_config.payload.dummy = dummy;
     }
 }
 
-static inline void get_iters(size_t size, size_t * number_of_iterations, size_t * number_of_warm_up_iterations) {
+static inline void get_iters(size_t size, size_t *number_of_iterations, size_t *number_of_warm_up_iterations)
+{
     size_t n, w;
-    if (size > 0) {
+    if (size > 0)
+    {
         n = round(((double)imb_p2p_config.iter.numerator) / size);
-        if (n > imb_p2p_config.iter.max) {
+        if (n > imb_p2p_config.iter.max)
+        {
             n = imb_p2p_config.iter.max;
         }
-        if (n < 1) {
+        if (n < 1)
+        {
             n = 1;
         }
-    } else {
+    }
+    else
+    {
         n = imb_p2p_config.iter.max;
     }
     w = (n / 10);
-    if ((w == 0) && (n > 1)) {
+    if ((w == 0) && (n > 1))
+    {
         w = 1;
     }
     *number_of_iterations = n;
     *number_of_warm_up_iterations = w;
 }
 
-static inline uint32_t get_next_random(uint64_t *random_seed) {
+static inline uint32_t get_next_random(uint64_t *random_seed)
+{
     uint64_t n = *random_seed;
     n = n * 7560690468208412377ull + 4343336064253945357ull;
     *random_seed = n;
