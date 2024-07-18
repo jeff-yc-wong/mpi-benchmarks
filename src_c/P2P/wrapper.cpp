@@ -1,50 +1,54 @@
+#include <boost/format.hpp>
+#include <cassert>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <cassert>
-#include <cmath>
-#include <boost/format.hpp>
 // #include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-#include "smpi/smpi.h"
-#include "simgrid/s4u.hpp"
 #include "parse.hpp"
-#include <unistd.h>
+#include "simgrid/s4u.hpp"
+#include "smpi/smpi.h"
+#include <boost/algorithm/string.hpp>
 #include <sys/wait.h>
+#include <unistd.h>
 
 namespace sg4 = simgrid::s4u;
 
 const int BUFFER_SIZE = 1024;
 
-class LocalData
-{
+class LocalData {
 public:
   double threshold; /* maximal stderr requested (if positive) */
   double relstderr; /* observed stderr so far */
-  double mean;      /* mean of benched times, to be used if the block is disabled */
-  double sum;       /* sum of benched times (to compute the mean and stderr) */
-  double sum_pow2;  /* sum of the square of the benched times (to compute the stderr) */
-  int iters;        /* amount of requested iterations */
-  int count;        /* amount of iterations done so far */
-  bool benching;    /* true: we are benchmarking; false: we have enough data, no bench anymore */
+  double mean; /* mean of benched times, to be used if the block is disabled */
+  double sum;  /* sum of benched times (to compute the mean and stderr) */
+  double sum_pow2; /* sum of the square of the benched times (to compute the
+                      stderr) */
+  int iters;       /* amount of requested iterations */
+  int count;       /* amount of iterations done so far */
+  bool benching;   /* true: we are benchmarking; false: we have enough data, no
+                      bench anymore */
 
   bool need_more_benchs() const;
 };
 
-bool LocalData::need_more_benchs() const
-{
-  bool res = (count < iters) && (threshold < 0.0 || count < 2 || // not enough data
-                                 relstderr >= threshold);        // stderr too high yet
-  // fprintf(stderr, "\r%s (count:%d sum: %f iter:%d stderr:%f thres:%f mean:%fs)",
-  //         (res ? "need more data" : "enough benchs"), count, sum, iters, relstderr, threshold, mean);
+bool LocalData::need_more_benchs() const {
+  bool res =
+      (count < iters) && (threshold < 0.0 || count < 2 || // not enough data
+                          relstderr >= threshold);        // stderr too high yet
+  // fprintf(stderr, "\r%s (count:%d sum: %f iter:%d stderr:%f thres:%f
+  // mean:%fs)",
+  //         (res ? "need more data" : "enough benchs"), count, sum, iters,
+  //         relstderr, threshold, mean);
   return res;
 }
 
-int main(int argc, char **argv)
-{
-  if (argc < 7)
-  {
-    std::cerr << "Usage: " << argv[0] << " <platform_file> <executable> <benchmark> <threshold> <max_iters> <num_procs>" << std::endl;
+int main(int argc, char **argv) {
+  if (argc < 7) {
+    std::cerr << "Usage: " << argv[0]
+              << " <platform_file> <executable> <benchmark> <threshold> "
+                 "<max_iters> <num_procs>"
+              << std::endl;
     return 1;
   }
 
@@ -55,16 +59,15 @@ int main(int argc, char **argv)
   std::vector<pid_t> child_pids(num_procs - 1);
 
   // Create pipe
-  for (int i = 1; i < num_procs; i++)
-  {
-    if (pipe(&pipe_fds[(i - 1) * 2]) == -1)
-    {
+  for (int i = 1; i < num_procs; i++) {
+    if (pipe(&pipe_fds[(i - 1) * 2]) == -1) {
       perror("pipe");
       return 1;
     }
   }
 
-  // Creating the Simgrid engine, Loading the platform description, and turning on privatization
+  // Creating the Simgrid engine, Loading the platform description, and turning
+  // on privatization
   sg4::Engine engine(&argc, argv);
   engine.set_config("network/model:SMPI");
   engine.set_config("smpi/privatization:ON");
@@ -87,24 +90,24 @@ int main(int argc, char **argv)
 
   std::vector<std::string> final_benchmarks;
 
-  std::vector<std::string> byte_sizes = {"1", "2", "4", "8", "16", "32", "64", "128", "256", "512",
-                                         "1024", "2048", "4096", "8192", "16384", "32768", "65536",
-                                         "131072", "262144", "524288", "1048576", "2097152", "4194304"};
+  std::vector<std::string> byte_sizes = {
+      "1",      "2",      "4",       "8",       "16",     "32",
+      "64",     "128",    "256",     "512",     "1024",   "2048",
+      "4096",   "8192",   "16384",   "32768",   "65536",  "131072",
+      "262144", "524288", "1048576", "2097152", "4194304"};
 
   int local_len = byte_sizes.size() / num_procs;
   int remainder = byte_sizes.size() % num_procs;
 
   pid_t pid;
-`
-  for (int rank = 1; rank < num_procs; rank++)
-  {
+
+  for (int rank = 1; rank < num_procs; rank++) {
     pid = fork();
-    if (pid == 0)
-    {
-      for (int j = 0; j < (num_procs - 1) * 2; ++j)
-      {
-        if (j != (rank - 1) * 2 + 1)
-        { // Close all the read pipes except the one we are using to write which is at index (rank - 1) * 2 + 1
+    if (pid == 0) {
+      for (int j = 0; j < (num_procs - 1) * 2; ++j) {
+        if (j != (rank - 1) * 2 +
+                     1) { // Close all the read pipes except the one we are
+                          // using to write which is at index (rank - 1) * 2 + 1
           close(pipe_fds[j]);
         }
       }
@@ -114,8 +117,7 @@ int main(int argc, char **argv)
       int end = start + local_len + (rank < remainder ? 1 : 0);
       std::string filename = "p2p_" + std::to_string(rank) + ".log";
 
-      for (int i = start; i < end; i++)
-      {
+      for (int i = start; i < end; i++) {
         std::string bytes = byte_sizes[i];
         LocalData data = LocalData{
             threshold, // threshold
@@ -131,17 +133,15 @@ int main(int argc, char **argv)
         std::cerr << "Benchmarking with " << bytes << " bytes" << std::endl;
         // Running the executable in a loop
 
-        for (int i = 0; i < max_iters; i++)
-        {
+        for (int i = 0; i < max_iters; i++) {
 
           const std::string i_str = std::to_string(i + 1);
 
-          std::vector<std::string> my_args = {"-iter", "1", benchmark, "-msgsz", bytes};
+          std::vector<std::string> my_args = {"-iter", "1", benchmark, "-msgsz",
+                                              bytes};
 
-          
           FILE *file = freopen(filename.c_str(), "w", stdout);
-          if (!file)
-          {
+          if (!file) {
             std::cerr << "Error opening file" << std::endl;
             exit(1);
           }
@@ -160,11 +160,13 @@ int main(int argc, char **argv)
           data.sum_pow2 += mb_per_sec * mb_per_sec;
           double n = data.count;
           data.mean = data.sum / n;
-          data.relstderr = std::sqrt((data.sum_pow2 / n - data.mean * data.mean)) / data.mean;
+          data.relstderr =
+              std::sqrt((data.sum_pow2 / n - data.mean * data.mean)) /
+              data.mean;
 
-          if (!data.need_more_benchs())
-          {
-            final_benchmarks.push_back(boost::str(boost::format("%.2f") % data.mean));
+          if (!data.need_more_benchs()) {
+            final_benchmarks.push_back(
+                boost::str(boost::format("%.2f") % data.mean));
             break;
           }
         }
@@ -180,14 +182,10 @@ int main(int argc, char **argv)
       std::cerr << "RANK[" << rank << "]: Done writing to pipe!" << std::endl;
 
       _exit(0);
-    }
-    else if (pid > 0)
-    {
+    } else if (pid > 0) {
       child_pids[rank - 1] = pid;
       close(pipe_fds[(rank - 1) * 2 + 1]); // Close the write end of the pipe
-    }
-    else
-    {
+    } else {
       perror("fork");
       return 1;
     }
@@ -200,8 +198,7 @@ int main(int argc, char **argv)
 
   FILE *original_stdout = fdopen(dup(fileno(stdout)), "w");
 
-  for (int i = start; i < end; i++)
-  {
+  for (int i = start; i < end; i++) {
     std::string bytes = byte_sizes[start + i];
     LocalData data = LocalData{
         threshold, // threshold
@@ -217,16 +214,15 @@ int main(int argc, char **argv)
     std::cerr << "Benchmarking with " << bytes << " bytes" << std::endl;
     // Running the executable in a loop
 
-    for (int i = 0; i < max_iters; i++)
-    {
+    for (int i = 0; i < max_iters; i++) {
 
       const std::string i_str = std::to_string(i + 1);
 
-      std::vector<std::string> my_args = {"-iter", "1", benchmark, "-msgsz", bytes};
+      std::vector<std::string> my_args = {"-iter", "1", benchmark, "-msgsz",
+                                          bytes};
 
       FILE *file = freopen(filename.c_str(), "w", stdout);
-      if (!file)
-      {
+      if (!file) {
         std::cerr << "RANK[0]: Error opening file" << std::endl;
         exit(1);
       }
@@ -246,11 +242,12 @@ int main(int argc, char **argv)
       data.sum_pow2 += mb_per_sec * mb_per_sec;
       double n = data.count;
       data.mean = data.sum / n;
-      data.relstderr = std::sqrt((data.sum_pow2 / n - data.mean * data.mean)) / data.mean;
+      data.relstderr =
+          std::sqrt((data.sum_pow2 / n - data.mean * data.mean)) / data.mean;
 
-      if (!data.need_more_benchs())
-      {
-        final_benchmarks.push_back(boost::str(boost::format("%.2f") % data.mean));
+      if (!data.need_more_benchs()) {
+        final_benchmarks.push_back(
+            boost::str(boost::format("%.2f") % data.mean));
         break;
       }
     }
@@ -265,11 +262,10 @@ int main(int argc, char **argv)
   std::string result = boost::algorithm::join(final_benchmarks, " ");
 
   char buffer[BUFFER_SIZE];
-  for (int i = 0; i < num_procs - 1; i++)
-  {
+  for (int i = 0; i < num_procs - 1; i++) {
     ssize_t bytesRead;
-    while ((bytesRead = read(pipe_fds[i * 2], buffer, sizeof(buffer) - 1)) > 0)
-    {
+    while ((bytesRead = read(pipe_fds[i * 2], buffer, sizeof(buffer) - 1)) >
+           0) {
       buffer[bytesRead] = '\0';
       result = result + " " + buffer;
     }
@@ -277,8 +273,7 @@ int main(int argc, char **argv)
 
   fprintf(stdout, "%s\n", result.c_str());
 
-  for (int i = 0; i < num_procs - 1; i++)
-  {
+  for (int i = 0; i < num_procs - 1; i++) {
     waitpid(child_pids[i], NULL, 0);
   }
 
