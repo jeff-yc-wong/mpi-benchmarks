@@ -46,7 +46,7 @@ bool LocalData::need_more_benchs() const {
 int main(int argc, char **argv) {
   if (argc < 7) {
     std::cerr << "Usage: " << argv[0]
-              << " <platform_file> <executable> <benchmark> <threshold> "
+              << " <platform_file> <hostfile> <executable> <benchmark> <threshold> "
                  "<max_iters> <num_procs>"
               << std::endl;
     return 1;
