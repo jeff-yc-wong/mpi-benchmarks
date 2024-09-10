@@ -45,7 +45,7 @@ CC=smpicc
 CXX=g++
 endif
 
-all: $(BINARY) wrapper wrapper_serial
+all: $(BINARY) wrapper wrapper_parallel test_2
 
 IMB_SRC = imb_p2p.c
 IMB_SRC += imb_p2p_pingpong.c
@@ -58,11 +58,13 @@ IMB_SRC += imb_p2p_stencil3d.c
 IMB_SRC += imb_p2p_sendrecv_replace.c
 
 IMB_OBJ = $(IMB_SRC:.c=.o)
+test_2: test_2.o
+	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 wrapper: wrapper.o parse.o
 	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-wrapper_serial: wrapper_serial.o parse.o
+wrapper_parallel: wrapper_parallel.o parse.o
 	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(BINARY): $(IMB_OBJ)
